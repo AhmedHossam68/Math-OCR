@@ -1,5 +1,5 @@
 import sys
-sys.path.append('C:\\Users\\pc\\Desktop\\OCR')
+sys.path.append('C:\\Uni\\Junior Sem2\\AI\\Project\\pro')
 import tkinter as tk
 import sympy
 from tkinter import filedialog, ttk
@@ -66,19 +66,21 @@ def evaluate_equation(equation_str):
         solutions = parse_expr(equation_str)
     
     if(type(solutions) == list):
+        n=len(solutions)
         result = "The solutions are: "
-        if(str(solutions[0][0]) != 'x'):
-            result += "x = " + str(solutions[0][0])
-        if(str(solutions[0][1]) != 'y'):
-            result += "y = " + str(solutions[0][1])
-        if(str(solutions[0][2]) != 'z'):
-            result += "z = " + str(solutions[0][2])
+        for i in range(n):
+            if(str(solutions[i][0]) != 'x'):
+                result += "  x = " + str(solutions[i][0])
+            if(str(solutions[i][1]) != 'y'):
+                result += "  y = " + str(solutions[i][1])
+            if(str(solutions[i][2]) != 'z'):
+                result += "  z = " + str(solutions[i][2])
         return result
     elif(type(solutions) == sympy.core.numbers.Integer):
         result = "The solution is: " + str(solutions)
         return result
     else:
-        return "None"
+        return "No solution found"
     
 def img2emnist(filepath, char_code):
     img = Image.open(filepath).resize((28, 28))
@@ -94,9 +96,9 @@ def img2emnist(filepath, char_code):
     
 def run_model(image_path):
     INPUT_IMAGE = image_path
-    SEGMENTED_OUTPUT_DIR = 'C:\\Users\\pc\\Desktop\\OCR\\segmented/'
-    MODEL_PATH = 'C:\\Users\\pc\\Desktop\\OCR\\model\\modelOCR3.h5'
-    mapping_processed = 'C:\\Users\\pc\\Desktop\\OCR\\data\\eminst\\processed-mapping_filtered_renumbered.csv'
+    SEGMENTED_OUTPUT_DIR = 'C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented/'
+    MODEL_PATH = 'C:\\Uni\\Junior Sem2\\AI\\Project\\Math-OCR\\Project\\model\\modelOCR4.h5'
+    mapping_processed = 'C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\data\\processed-mapping_filtered_renumbered.csv'
     cs.image_segmentation(INPUT_IMAGE)
     segmented_images = []
     files = [f for r, d, f in os.walk(SEGMENTED_OUTPUT_DIR)][0]
@@ -145,6 +147,9 @@ def run_model(image_path):
     return parsed_str
 
 def process_image():
+    global photo  # Declare photo as global to prevent it from being garbage collected
+    global image_canvas  # Declare image_canvas as global so we can update it
+
     root = tk.Tk()
     root.withdraw()  # Hide the root window
 
@@ -153,7 +158,30 @@ def process_image():
 
     if image_path:
         print("Selected image path:", image_path)
-        clear_folder('C:\\Users\\pc\\Desktop\\OCR\\segmented')
+
+        # Load the image using PIL
+        img = Image.open(image_path)
+
+        # Define the size for the image
+        max_size = (800, 600)  # You can adjust this size as needed
+
+        # Resize the image to fit within the defined size
+        img.thumbnail(max_size, Image.ANTIALIAS)
+
+        # Convert the image to PhotoImage
+        photo = ImageTk.PhotoImage(img)
+
+        # If the canvas doesn't exist, create it. Otherwise, update the image on the canvas
+        if image_canvas is None:
+            image_canvas = tk.Canvas(mainframe, width=photo.width(), height=photo.height())
+            image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+            image_canvas.grid(column=1, row=6, columnspan=4)
+        else:
+            image_canvas.config(width=photo.width(), height=photo.height())
+            image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+
+        # Solve the equation in the image
+        clear_folder('C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented')
         modeledEquation = run_model(image_path)
         modeled_label.config(text=str(modeledEquation))
         solution = evaluate_equation(modeledEquation)
@@ -169,7 +197,15 @@ def solve_equation():
         solution_label.config(text=str(solution))
     except Exception as e:
         solution_label.config(text=str(e))
+        
+def clear_image():
+    global photo
+    global image_canvas
+    photo = None
+    if image_canvas is not None:
+        image_canvas.delete("all")
 
+# GUI Setup
 root = ThemedTk(theme="arc")
 root.title("Math Equation Solver")
 root.geometry('800x600')
@@ -184,12 +220,16 @@ equation_entry = ttk.Entry(mainframe, width=30)
 equation_entry.grid(column=2, row=1, sticky=(tk.W, tk.E))
 
 # Create "Solve" button for manual equation
-solve_button = ttk.Button(mainframe, text="Solve Equation", command=solve_equation)
+solve_button = tk.Button(mainframe, text="Solve Equation", command=solve_equation, foreground='white', background='green')
 solve_button.grid(column=3, row=3, sticky=(tk.W))
 
 # Create "Process Image" button for image equation
-process_image_button = ttk.Button(mainframe, text="Process Image", command=process_image)
+process_image_button = tk.Button(mainframe, text="Process Image", command=process_image, foreground='white', background='green')
 process_image_button.grid(column=2, row=2, sticky=(tk.W))
+
+# Create "Clear Image" button
+clear_image_button = tk.Button(mainframe, text="Clear Image", command=clear_image, foreground='white', background='red')
+clear_image_button.grid(column=3, row=2, sticky=(tk.W))
 
 # Create label to display modeled equation
 modeled_label = ttk.Label(mainframe, text="")
@@ -199,5 +239,4 @@ modeled_label.grid(column=1, row=5, columnspan=4, sticky=(tk.W))
 solution_label = ttk.Label(mainframe, text="")
 solution_label.grid(column=1, row=10, columnspan=4, sticky=(tk.W))
 
-
-root.mainloop() 
+root.mainloop()
