@@ -150,6 +150,8 @@ def process_image():
     global photo  # Declare photo as global to prevent it from being garbage collected
     global image_canvas  # Declare image_canvas as global so we can update it
 
+    clear_image()  # Clear the image at the beginning of the function
+
     root = tk.Tk()
     root.withdraw()  # Hide the root window
 
@@ -171,23 +173,23 @@ def process_image():
         # Convert the image to PhotoImage
         photo = ImageTk.PhotoImage(img)
 
-        # If the canvas doesn't exist, create it. Otherwise, update the image on the canvas
-        if image_canvas is None:
-            image_canvas = tk.Canvas(mainframe, width=photo.width(), height=photo.height())
+       # Move the image canvas to the output frame
+    if image_canvas is None:
+            image_canvas = tk.Canvas(outputframe, width=photo.width(), height=photo.height())
             image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
-            image_canvas.grid(column=1, row=6, columnspan=4)
-        else:
+    else:
             image_canvas.config(width=photo.width(), height=photo.height())
             image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+            image_canvas.grid(column=1, row=6, columnspan=4)  # Add the image_canvas back to the grid
+# Solve the equation in the image
+    clear_folder('C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented')
+    modeledEquation = run_model(image_path)
+    modeled_label.config(text=str(modeledEquation))
+    solution = evaluate_equation(modeledEquation)
+    solution_label.config(text=str(solution))
 
-        # Solve the equation in the image
-        clear_folder('C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented')
-        modeledEquation = run_model(image_path)
-        modeled_label.config(text=str(modeledEquation))
-        solution = evaluate_equation(modeledEquation)
-        solution_label.config(text=str(solution))
-    else:
-        print("No image selected.")
+if image_path is None:
+    print("No image selected.")
 
 
 def solve_equation():
@@ -202,41 +204,61 @@ def clear_image():
     global photo
     global image_canvas
     photo = None
+    
     if image_canvas is not None:
+        image_canvas.grid_remove()
         image_canvas.delete("all")
 
 # GUI Setup
 root = ThemedTk(theme="arc")
 root.title("Math Equation Solver")
-root.geometry('800x600')
+root.geometry('1000x800')
 
-mainframe = ttk.Frame(root, padding="10")
-mainframe.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+# Load the background image
+bg_image_path = "C:\\Users\\ahmed\\Downloads\\360_F_67262923_0j8fNjF3g1RBKYSTd0kbjL4SR12v6oBw.png"  # Replace with your image path
+bg_image = Image.open(bg_image_path)
+bg_image = bg_image.resize((1000, 800), Image.ANTIALIAS)  # Resize the image to fit the window
+bg_photo = ImageTk.PhotoImage(bg_image)
+
+# Set the icon for the window
+root.iconbitmap("C:\\Users\\ahmed\\Downloads\\plus_40632.ico")
+
+# Create a Canvas to display the background image
+bg_canvas = tk.Canvas(root, width=800, height=600)
+bg_canvas.pack(fill='both', expand=True)  # Make the canvas fill the entire window
+bg_canvas.create_image(0, 0, image=bg_photo, anchor='nw')  # Display the background image
+
+# Create the main frame
+mainframe = ttk.Frame(bg_canvas, padding="10")  # Make the canvas the parent of the main frame
+mainframe.place(relx=0.5, rely=0.2, anchor='center')  # Center the main frame
+
+# Create the output frame
+outputframe = ttk.Frame(bg_canvas, padding="10")  # Make the canvas the parent of the output frame
+outputframe.place(relx=0.5, rely=0.6, anchor='center')  # Place the output frame at the bottom of the window
 
 # Create entry field for equation
 equation_label = ttk.Label(mainframe, text="Enter your equation:")
-equation_label.grid(column=1, row=1, sticky=(tk.W))
+equation_label.grid(column=1, row=1)
 equation_entry = ttk.Entry(mainframe, width=30)
-equation_entry.grid(column=2, row=1, sticky=(tk.W, tk.E))
+equation_entry.grid(column=2, row=1)
 
 # Create "Solve" button for manual equation
 solve_button = tk.Button(mainframe, text="Solve Equation", command=solve_equation, foreground='white', background='green')
-solve_button.grid(column=3, row=3, sticky=(tk.W))
+solve_button.grid(column=1, row=2, columnspan=2)
 
 # Create "Process Image" button for image equation
 process_image_button = tk.Button(mainframe, text="Process Image", command=process_image, foreground='white', background='green')
-process_image_button.grid(column=2, row=2, sticky=(tk.W))
+process_image_button.grid(column=1, row=3, columnspan=2)
 
 # Create "Clear Image" button
 clear_image_button = tk.Button(mainframe, text="Clear Image", command=clear_image, foreground='white', background='red')
-clear_image_button.grid(column=3, row=2, sticky=(tk.W))
+clear_image_button.grid(column=1, row=4, columnspan=2)
 
-# Create label to display modeled equation
-modeled_label = ttk.Label(mainframe, text="")
-modeled_label.grid(column=1, row=5, columnspan=4, sticky=(tk.W))
+# Move the labels to the output frame
+modeled_label = ttk.Label(outputframe, text="")
+modeled_label.grid(column=1, row=5, columnspan=4)
 
-# Create label to display solution
-solution_label = ttk.Label(mainframe, text="")
+solution_label = ttk.Label(outputframe, text="")
 solution_label.grid(column=1, row=10, columnspan=4, sticky=(tk.W))
 
 root.mainloop()
