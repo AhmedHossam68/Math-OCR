@@ -1,5 +1,5 @@
 import sys
-sys.path.append('C:\\Uni\\Junior Sem2\\AI\\Project\\pro')
+sys.path.append('C:\\Uni\\Junior Sem2\\AI\\Project\\pro') #Change this path to the actual path to the project on your system
 import tkinter as tk
 import sympy
 from tkinter import filedialog, ttk
