@@ -173,32 +173,36 @@ def process_image():
         # Convert the image to PhotoImage
         photo = ImageTk.PhotoImage(img)
 
-       # Move the image canvas to the output frame
-    if image_canvas is None:
+        # Solve the equation in the image
+        clear_folder('C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented')
+        modeledEquation = run_model(image_path)
+        modeled_label.config(text=str(modeledEquation))
+        solution = evaluate_equation(modeledEquation)
+        solution_label.config(text=str(solution))
+
+        # Move the image canvas to the output frame
+        if image_canvas is None:
             image_canvas = tk.Canvas(outputframe, width=photo.width(), height=photo.height())
             image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
-    else:
+            image_canvas.grid(column=1, row=6, columnspan=4)  # Add the image_canvas back to the grid
+        else:
             image_canvas.config(width=photo.width(), height=photo.height())
             image_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
             image_canvas.grid(column=1, row=6, columnspan=4)  # Add the image_canvas back to the grid
-# Solve the equation in the image
-    clear_folder('C:\\Uni\\Junior Sem2\\AI\\Project\\pro\\segmented')
-    modeledEquation = run_model(image_path)
-    modeled_label.config(text=str(modeledEquation))
-    solution = evaluate_equation(modeledEquation)
-    solution_label.config(text=str(solution))
 
-if image_path is None:
-    print("No image selected.")
+        image_canvas.update()  # Update the image_canvas immediately
+
+    else:
+        print("No image selected.")
 
 
 def solve_equation():
     equation = equation_entry.get()
     try:
         solution = evaluate_equation(equation)
-        solution_label.config(text=str(solution))
+        solution_label.config(text="Solution: " + str(solution))
     except Exception as e:
-        solution_label.config(text=str(e))
+        solution_label.config(text="Error: " + str(e))
         
 def clear_image():
     global photo
@@ -230,11 +234,19 @@ bg_canvas.create_image(0, 0, image=bg_photo, anchor='nw')  # Display the backgro
 
 # Create the main frame
 mainframe = ttk.Frame(bg_canvas, padding="10")  # Make the canvas the parent of the main frame
-mainframe.place(relx=0.5, rely=0.2, anchor='center')  # Center the main frame
+mainframe.place(relx=0.5, rely=0.1, anchor='center')  # Center the main frame
 
 # Create the output frame
 outputframe = ttk.Frame(bg_canvas, padding="10")  # Make the canvas the parent of the output frame
-outputframe.place(relx=0.5, rely=0.6, anchor='center')  # Place the output frame at the bottom of the window
+outputframe.place(relx=0.5, rely=0.5, anchor='center')  # Place the output frame at the bottom of the window
+
+# Create the solution frame
+solutionframe = ttk.Frame(bg_canvas, padding="10")  # Make the canvas the parent of the solution frame
+solutionframe.place(relx=0.5, rely= 0.8, anchor='center')  # Place the solution frame at the bottom of the window
+
+# Create a label for the solution
+solution_label = ttk.Label(solutionframe)
+solution_label.pack()
 
 # Create entry field for equation
 equation_label = ttk.Label(mainframe, text="Enter your equation:")
@@ -258,7 +270,8 @@ clear_image_button.grid(column=1, row=4, columnspan=2)
 modeled_label = ttk.Label(outputframe, text="")
 modeled_label.grid(column=1, row=5, columnspan=4)
 
-solution_label = ttk.Label(outputframe, text="")
-solution_label.grid(column=1, row=10, columnspan=4, sticky=(tk.W))
+# Create a label for the solution
+solution_label = ttk.Label(solutionframe)
+solution_label.pack()
 
 root.mainloop()
